@@ -82,7 +82,7 @@ async def main():
         tools = [t for t in tools if t.name in {"record_assessment"}],
         system_prompt=deep_agent_prompt,
         checkpointer=checkpointer,
-        interrupt_on= {"record_assessment": _APPROVE_EDIT_REJECT },
+        #interrupt_on= {"record_assessment": _APPROVE_EDIT_REJECT },
     )
 
     structured_request = VendorAssessmentRequest(
@@ -108,7 +108,7 @@ async def main():
 
     _trace("STARTING AGENT WORKFLOW", request["messages"][0]["content"])
     try:
-        async with asyncio.timeout(int(os.getenv("AGENT_TIMEOUT_SECONDS", "30"))):
+        async with asyncio.timeout(int(os.getenv("AGENT_TIMEOUT_SECONDS", "90"))):
             async for update in agent.astream(request, config=config, stream_mode="updates"):
                 for node_name, node_update in update.items():
                     _trace("GRAPH STEP", node_name)

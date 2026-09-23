@@ -1,0 +1,6 @@
+{
+    "vendor": "Asteria AI Systems",
+    "recommendation": "CONDITIONAL APPROVAL",
+    "risk_rating": "Medium to High",
+    "executive_summary": "Asteria AI Systems, an Enterprise Generative AI platform handling confidential corporate documents with 2000 users, presents moderate to high overall risk across multiple domains. Security gaps include pending SOC2 Type II certification, penetration testing less frequent than policy, and missing detailed access control and incident response documentation. Procurement risk arises from non-compliance with mandatory volume discount policy and incomplete financial and support terms. Legal and compliance assessment is hindered by absence of specific vendor data privacy, liability, and regulatory documentation, implying high compliance risk. AI governance shows potential policy conflict due to use of anonymized data for model training and lacks complete bias mitigation and auditability evidence. Conditional approval is recommended pending thorough vendor remediation, submission of comprehensive evidence on security controls, contract compliance, legal agreements, and AI governance practices. Access to top-tier confidential data should be restricted until all conditions are met."
+}

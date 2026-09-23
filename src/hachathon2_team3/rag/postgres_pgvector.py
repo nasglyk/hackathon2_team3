@@ -1,12 +1,11 @@
 from dotenv import load_dotenv
 from langchain_core.documents import Document
 from langchain_postgres import PGVector
-from langchain_community.document_loaders import WebBaseLoader
-from langchain_openai import AzureOpenAIEmbeddings, AzureChatOpenAI
+from langchain_openai import AzureOpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
-import re
 from pathlib import Path
+import re
 
 load_dotenv()
 
@@ -23,31 +22,51 @@ store = PGVector(
     embeddings=embeddings,
     connection=CONNECTION,
     collection_name="hackathon2_team3_docs",
+    pre_delete_collection=True,  # This empties the collection on initialization
 )
 
-# -----------------------------------------------
-#create docs: list[Document] = []
-docs = []
-#read pdf file and make it into a Document object
 def read_pdf(file_path: Path) -> list[Document]:
     """Read the content of a PDF file and return it as a Document object."""
-    return [Document(page_content=read_pdf_content(file_path), metadata={"source": str(file_path)})]
+    knowledge_root = Path(__file__).parent / "knowledge"
+    return [
+        Document(
+            page_content=read_pdf_content(file_path),
+            metadata={
+                "source": str(file_path),
+                "source_name": file_path.name,
+                "relative_source": str(file_path.relative_to(knowledge_root)),
+            },
+        )
+    ]
+
+
 
 def read_pdf_content(file_path: Path) -> str:
-    """Read the content of a PDF file and return it as a string."""
+    """Read the content of a PDF file and normalize broken whitespace."""
     from PyPDF2 import PdfReader
 
     reader = PdfReader(str(file_path))
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text() + "\n"
-    return text
+    raw_text = "\n".join(page.extract_text() or "" for page in reader.pages)
+    
+    # Replace any sequence of whitespace characters (spaces, tabs, newlines) with a single space
+    cleaned_text = re.sub(r'\s+', ' ', raw_text)
+    
+    # Optional: Restore paragraph breaks if you want cleaner visual chunks
+    # (assuming the original PDF used double newlines for paragraphs)
+    # cleaned_text = cleaned_text.replace(" . ", ".\n\n") 
+    
+    return cleaned_text.strip()
 
-docs = read_pdf(Path(__file__).parent / "knowledge" / "gdpr.pdf")
+
+knowledge_root = Path(__file__).parent / "knowledge"
+pdf_files = sorted(knowledge_root.rglob("*.pdf"))
+docs = [document for pdf_file in pdf_files for document in read_pdf(pdf_file)]
+
+print(f"Found {len(pdf_files)} PDF files under {knowledge_root}")
 
 # -----------------------------------------------
 
-splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=40)
+splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=40)
 
 chunks = splitter.split_documents(docs)
 
